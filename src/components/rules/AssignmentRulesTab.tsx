@@ -162,6 +162,12 @@ export default function AssignmentRulesTab({ state, setState, saveState }: Assig
     task: t(lang, "task"),
     targetUser: t(lang, "targetUser"),
     backupUser: lang === "zh" ? "备选用户" : "Backup User",
+    selectWorkGroup: lang === "zh" ? "请选择工作组" : "Select Work Group",
+    selectProcessTemplate: lang === "zh" ? "请选择流程模板" : "Select Process Template",
+    selectMilestone: lang === "zh" ? "请选择里程碑" : "Select Milestone",
+    selectTask: lang === "zh" ? "请选择任务" : "Select Task",
+    selectTargetUser: lang === "zh" ? "请选择目标用户" : "Select Target User",
+    noBackupUser: lang === "zh" ? "无备选用户" : "No Backup User",
     requiredTemplate: lang === "zh" ? "流程模板为必填项。" : "Process Template is required.",
     requiredWorkGroup: lang === "zh" ? "工作组为必填项。" : "Work Group is required.",
     requiredCustomer: lang === "zh" ? "客户为必填项。" : "Customer is required.",
@@ -515,12 +521,12 @@ export default function AssignmentRulesTab({ state, setState, saveState }: Assig
           <label className="space-y-1 text-sm font-semibold">
             <span>{labels.workGroup}<span className="ml-0.5 text-red-600">*</span></span>
             <select value={draft.workGroupId || ""} onChange={(event) => updateDraft({ workGroupId: event.target.value, targetUser: "", backupUser: "" })} className="field-input">
-              <option value="">{labels.workGroup}</option>
+              <option value="" disabled hidden>{labels.selectWorkGroup}</option>
               {workGroupOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
             </select>
           </label>
           <select value={draft.templateId || ""} onChange={(event) => updateDraft({ templateId: event.target.value, milestoneId: "", taskId: "" })} className="field-input">
-            <option value="">{labels.processTemplate} *</option>
+            <option value="" disabled hidden>{labels.selectProcessTemplate} *</option>
             {templateOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
           </select>
           <MultiSelectDropdown label={labels.customer} values={draft.customers || []} options={clientOptions} onChange={(values) => updateDraft({ customers: values })} />
@@ -528,24 +534,24 @@ export default function AssignmentRulesTab({ state, setState, saveState }: Assig
           <MultiSelectDropdown label={t(lang, "country")} values={draft.countries || []} options={countryOptions} onChange={(values) => updateDraft({ countries: values, pols: [] })} />
           <MultiSelectDropdown label="POL" values={draft.pols || []} options={polOptions} onChange={(values) => updateDraft({ pols: values })} />
           <select value={draft.milestoneId || ""} onChange={(event) => updateDraft({ milestoneId: event.target.value, taskId: "" })} className="field-input">
-            <option value="">{labels.milestone}</option>
+            <option value="">{labels.selectMilestone}</option>
             {milestoneOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
           </select>
           <select value={draft.taskId || ""} onChange={(event) => updateDraft({ taskId: event.target.value })} className="field-input">
-            <option value="">{labels.task}</option>
+            <option value="">{labels.selectTask}</option>
             {taskOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
           </select>
           <label className="space-y-1 text-sm font-semibold">
             <span>{labels.targetUser}<span className="ml-0.5 text-red-600">*</span></span>
             <select value={draft.targetUser || ""} onChange={(event) => updateDraft({ targetUser: event.target.value })} className="field-input" disabled={!draft.workGroupId}>
-              <option value="">{draft.workGroupId && userOptions.length === 0 ? labels.noMembers : labels.targetUser}</option>
+              <option value="" disabled hidden>{draft.workGroupId && userOptions.length === 0 ? labels.noMembers : labels.selectTargetUser}</option>
               {userOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
             </select>
           </label>
           <label className="space-y-1 text-sm font-semibold">
             <span>{labels.backupUser}</span>
             <select value={draft.backupUser || ""} onChange={(event) => updateDraft({ backupUser: event.target.value })} className="field-input" disabled={!draft.workGroupId}>
-              <option value="">{labels.backupUser}</option>
+              <option value="">{labels.noBackupUser}</option>
               {userOptions.filter((option) => option.value !== draft.targetUser).map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
             </select>
           </label>
