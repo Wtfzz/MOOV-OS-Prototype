@@ -119,7 +119,7 @@ export default function ProcessTemplatesTab({ state, setState, saveState }: Proc
     const optionalFields = (state.templateSubjectFields || [])
       .filter((field: TemplateSubjectField) => !field.required)
       .sort((a: TemplateSubjectField, b: TemplateSubjectField) => a.sortOrder - b.sortOrder);
-    return optionalFields.filter((field: TemplateSubjectField) => field.enabled || selectedOptionalDimensions.includes(field.key));
+    return optionalFields.filter((field: TemplateSubjectField) => field.enabled);
   };
 
   const getTemplateFormFields = () => {
@@ -153,8 +153,8 @@ export default function ProcessTemplatesTab({ state, setState, saveState }: Proc
 
     selectedOptionalDimensions.forEach((dimKey: string) => {
       const field = state.templateSubjectFields?.find((f: TemplateSubjectField) => f.key === dimKey);
-      if (!field || !field.enabled) return;
-      let fieldConfig: any = { key: field.key, label: fieldLabel(field), required: field.required };
+      if (!field) return;
+      let fieldConfig: any = { key: field.key, label: fieldLabel(field), required: field.enabled ? field.required : false, disabled: !field.enabled };
       if (field.type === 'select') {
         fieldConfig.type = 'select';
         if (field.source === 'customers') {
@@ -259,8 +259,8 @@ export default function ProcessTemplatesTab({ state, setState, saveState }: Proc
 
   const handleSaveTemplate = (data: any) => {
     const subjectValues: Record<string, string> = {};
-    const enabledFields = (state.templateSubjectFields || []).filter((f: TemplateSubjectField) => f.enabled);
-    enabledFields.forEach((field: TemplateSubjectField) => {
+    const subjectFieldsForSave = (state.templateSubjectFields || []).filter((f: TemplateSubjectField) => f.enabled || selectedOptionalDimensions.includes(f.key));
+    subjectFieldsForSave.forEach((field: TemplateSubjectField) => {
       if (data[field.key]) {
         subjectValues[field.key] = data[field.key];
       }
@@ -765,7 +765,7 @@ export default function ProcessTemplatesTab({ state, setState, saveState }: Proc
         <DrawerForm
           title={drawerMode === "add" ? labels.addTemplate : t(lang, "editTemplate")}
           fields={getTemplateFormFields()}
-          values={editingTemplate || {}}
+          values={editingTemplate ? { ...(editingTemplate.subjectValues || {}), ...editingTemplate } : {}}
           onSave={handleSaveTemplate}
           onClose={() => { setDrawerOpen(false); setEditingTemplate(null); setSelectedOptionalDimensions([]); }}
         >

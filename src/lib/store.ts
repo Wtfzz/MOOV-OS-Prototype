@@ -2,7 +2,7 @@ import { AppState, User, PORecord, POItem } from "@/types";
 
 const STORAGE_KEY = "moov-os-p1-state";
 const STATE_VERSION_KEY = "moov-os-p1-state-version";
-const CURRENT_STATE_VERSION = 11; // Increment when data structure changes significantly
+const CURRENT_STATE_VERSION = 12; // Increment when data structure changes significantly
 
 // Generate 40 sample PO records
 function generatePurchaseOrders(): PORecord[] {
@@ -811,12 +811,11 @@ const defaultState: AppState = {
   ],
   // Template Subject Field Configuration - Dynamic template dimensions
   templateSubjectFields: [
-    // Required fields (cannot be disabled)
+    // Fixed required fields: customer and transportMode. Other dimensions are configurable.
     { key: "customer", label: "客户", type: "select", source: "customers", required: true, enabled: true, sortOrder: 1 },
-    { key: "originRegion", label: "起运港区域", type: "select", source: "regions", required: true, enabled: true, sortOrder: 2 },
-    { key: "destinationRegion", label: "目的港区域", type: "select", source: "regions", required: true, enabled: true, sortOrder: 3 },
+    { key: "originRegion", label: "起运港区域", type: "select", source: "regions", required: false, enabled: true, sortOrder: 2 },
+    { key: "destinationRegion", label: "目的港区域", type: "select", source: "regions", required: false, enabled: true, sortOrder: 3 },
     { key: "transportMode", label: "运输模式", type: "select", source: "transportModes", required: true, enabled: true, sortOrder: 4 },
-    // Optional fields (can be enabled/disabled)
     { key: "pol", label: "起运港(POL)", type: "select", source: "locations", required: false, enabled: true, sortOrder: 5 },
     { key: "pod", label: "目的港(POD)", type: "select", source: "locations", required: false, enabled: true, sortOrder: 6 },
     { key: "originCountry", label: "起运国家", type: "select", source: "countries", required: false, enabled: false, sortOrder: 7 },

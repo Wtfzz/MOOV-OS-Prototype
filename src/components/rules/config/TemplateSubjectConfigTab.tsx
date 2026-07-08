@@ -2,6 +2,8 @@ import { useState } from "react";
 import type { TemplateSubjectField } from "@/types";
 import { t, getCurrentLanguage, type Language } from "@/lib/i18n";
 
+const LOCKED_REQUIRED_DIMENSIONS = new Set(["customer", "transportMode"]);
+
 interface TemplateSubjectConfigTabProps {
   state: any;
   setState: (updater: any) => void;
@@ -28,6 +30,7 @@ export default function TemplateSubjectConfigTab({ state, setState, saveState }:
   };
 
   const handleToggleEnabled = (key: string, enabled: boolean) => {
+    if (LOCKED_REQUIRED_DIMENSIONS.has(key)) return;
     const updatedFields = (state.templateSubjectFields || []).map((f: TemplateSubjectField) =>
       f.key === key ? { ...f, enabled } : f
     );
@@ -69,46 +72,49 @@ export default function TemplateSubjectConfigTab({ state, setState, saveState }:
                 </td>
               </tr>
             ) : (
-              fields.sort((a: TemplateSubjectField, b: TemplateSubjectField) => a.sortOrder - b.sortOrder).map((field: TemplateSubjectField) => (
-                <tr key={field.key} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-sm font-mono text-xs">{field.key}</td>
-                  <td className="px-4 py-3 text-sm">{getFieldLabel(field)}</td>
-                  <td className="px-4 py-3 text-sm">
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-brand-soft text-brand-strong">
-                      {field.type}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-500">{field.source || "-"}</td>
-                  <td className="px-4 py-3 text-sm">
-                    {field.required ? (
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        {t(lang, 'yes')}
+              fields.sort((a: TemplateSubjectField, b: TemplateSubjectField) => a.sortOrder - b.sortOrder).map((field: TemplateSubjectField) => {
+                const locked = LOCKED_REQUIRED_DIMENSIONS.has(field.key);
+                return (
+                  <tr key={field.key} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 text-sm font-mono text-xs">{field.key}</td>
+                    <td className="px-4 py-3 text-sm">{getFieldLabel(field)}</td>
+                    <td className="px-4 py-3 text-sm">
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-brand-soft text-brand-strong">
+                        {field.type}
                       </span>
-                    ) : (
-                      <span className="text-gray-500">{t(lang, 'no')}</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-sm">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={field.enabled}
-                        disabled={field.required}
-                        onChange={(e) => handleToggleEnabled(field.key, e.target.checked)}
-                        className="w-4 h-4 rounded border-gray-300"
-                      />
-                      <span className={field.required ? "text-gray-400 text-xs" : ""}>
-                        {field.required 
-                          ? t(lang, 'required')
-                          : field.enabled 
-                            ? t(lang, 'enabled')
-                            : t(lang, 'disabled')}
-                      </span>
-                    </label>
-                  </td>
-                  <td className="px-4 py-3 text-sm">{field.sortOrder}</td>
-                </tr>
-              ))
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-500">{field.source || "-"}</td>
+                    <td className="px-4 py-3 text-sm">
+                      {field.required ? (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          {t(lang, 'yes')}
+                        </span>
+                      ) : (
+                        <span className="text-gray-500">{t(lang, 'no')}</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-sm">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={field.enabled}
+                          disabled={locked}
+                          onChange={(e) => handleToggleEnabled(field.key, e.target.checked)}
+                          className="w-4 h-4 rounded border-gray-300"
+                        />
+                        <span className={locked ? "text-gray-400 text-xs" : ""}>
+                          {locked
+                            ? t(lang, 'required')
+                            : field.enabled
+                              ? t(lang, 'enabled')
+                              : t(lang, 'disabled')}
+                        </span>
+                      </label>
+                    </td>
+                    <td className="px-4 py-3 text-sm">{field.sortOrder}</td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
