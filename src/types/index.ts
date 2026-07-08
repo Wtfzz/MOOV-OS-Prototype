@@ -54,6 +54,7 @@ export interface ProcessTemplate {
   objectType?: 'PO' | 'Shipment' | 'Booking' | 'Exception';
   matchStrategy?: 'Exact One' | 'Fallback';
   fallbackTemplate?: boolean;
+  milestoneDefinitionIds?: string[];
   // Legacy fields for backward compatibility
   customer: string;
   pol: string;
@@ -169,12 +170,15 @@ export interface MilestoneTask {
 export interface ActionRegistryItem {
   id: string;
   label: string;
+  businessLabel?: string;
+  moduleId?: string;
   businessObjectType: 'PO' | 'Shipment' | 'Booking' | 'Allocation' | 'Exception' | 'Task';
   pageId: string;
   tabId?: string;
   actionType: 'Review' | 'Edit' | 'Upload' | 'Approve' | 'Confirm' | 'Assign' | 'Resolve';
   requiredPermission: PermissionAction;
   completionEventId: string;
+  systemManaged?: boolean;
   status: 'Active' | 'Inactive';
   remark?: string;
 }
@@ -187,6 +191,68 @@ export interface EventRegistryItem {
   effect: 'Complete Task' | 'Open Next Milestone' | 'Create Exception Task' | 'Notify' | 'Audit Only';
   status: 'Active' | 'Inactive';
   remark?: string;
+}
+
+export interface TaskDefinition {
+  id: string;
+  taskName: string;
+  taskType: string;
+  businessObjectType: 'PO' | 'Shipment' | 'Booking' | 'Allocation' | 'Exception' | 'Task';
+  primaryActionId: string;
+  supportingActionIds?: string[];
+  generationMode?: 'Always' | 'Conditional' | 'Exception' | 'Manual';
+  generationCondition?: string;
+  slaTypeId?: string;
+  assignmentScope?: string;
+  status: 'Active' | 'Inactive' | 'Draft';
+  remark?: string;
+}
+
+export interface MilestoneDefinition {
+  id: string;
+  milestoneName: string;
+  businessStage: string;
+  displaySeq: number;
+  completionRule: 'All Tasks' | 'Key Tasks' | 'Manual';
+  taskDefinitionIds: string[];
+  status: 'Active' | 'Inactive' | 'Draft';
+  remark?: string;
+}
+
+export interface ProcessInstance {
+  id: string;
+  processTemplateId: string;
+  businessObjectType: 'PO' | 'Shipment' | 'Booking';
+  businessObjectId: string;
+  status: 'Active' | 'Completed' | 'Exception';
+  startedAt: string;
+  completedAt?: string;
+}
+
+export interface MilestoneInstance {
+  id: string;
+  processInstanceId: string;
+  milestoneDefinitionId: string;
+  status: 'Pending' | 'In Progress' | 'Completed' | 'Skipped';
+  plannedDueAt?: string;
+  completedAt?: string;
+}
+
+export interface TaskInstance {
+  id: string;
+  taskDefinitionId: string;
+  businessObjectType: 'PO' | 'Shipment' | 'Booking' | 'Allocation' | 'Exception' | 'Task';
+  businessObjectId: string;
+  processInstanceId: string;
+  milestoneInstanceId: string;
+  primaryActionId: string;
+  assigneeWorkGroupId?: string;
+  assigneeUserId?: string;
+  status: 'Open' | 'In Progress' | 'Completed' | 'Exception';
+  priority: 'High' | 'Medium' | 'Low';
+  slaDueAt?: string;
+  createdAt: string;
+  completedAt?: string;
 }
 
 export interface WorkAssignmentRule {
@@ -450,6 +516,11 @@ export interface AppState {
   milestoneTasks: MilestoneTask[];
   actionRegistry?: ActionRegistryItem[];
   eventRegistry?: EventRegistryItem[];
+  taskDefinitions?: TaskDefinition[];
+  milestoneDefinitions?: MilestoneDefinition[];
+  processInstances?: ProcessInstance[];
+  milestoneInstances?: MilestoneInstance[];
+  taskInstances?: TaskInstance[];
   workAssignmentRules: WorkAssignmentRule[];
   allocationRules: AllocationRule[];
   // Basic Config - Independent tabs per PRD
@@ -970,6 +1041,11 @@ export interface AppState {
   milestoneTasks: MilestoneTask[];
   actionRegistry?: ActionRegistryItem[];
   eventRegistry?: EventRegistryItem[];
+  taskDefinitions?: TaskDefinition[];
+  milestoneDefinitions?: MilestoneDefinition[];
+  processInstances?: ProcessInstance[];
+  milestoneInstances?: MilestoneInstance[];
+  taskInstances?: TaskInstance[];
   workAssignmentRules: WorkAssignmentRule[];
   // Two-tier Assignment Rules - PRD v2.0
   teamAssignmentRules: TeamAssignmentRule[];

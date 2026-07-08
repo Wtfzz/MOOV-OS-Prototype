@@ -19,6 +19,7 @@ import VesselsPage from "@/components/VesselsPage";
 import ClientsPage from "@/components/ClientsPage";
 import CarriersPage from "@/components/CarriersPage";
 import POManagementPage from "@/components/POManagementPage";
+import TaskQueuePage from "@/components/TaskQueuePage";
 
 type PageRendererProps = {
   currentPage: string;
@@ -72,6 +73,8 @@ export default function PageRenderer({ currentPage, currentUser, lang, dataScope
     case "table":
       return page.table && tablePages[page.table] ? tablePages[page.table](dataScope, pageAccess) : <TablePage tableKey={page.table || ""} />;
     case "reserved":
+      if (currentPage === "tasks-my") return <TaskQueuePage currentUser={currentUser} mode="my" />;
+      if (currentPage === "tasks-team") return <TaskQueuePage currentUser={currentUser} mode="team" />;
       return <ReservedPage page={page} />;
     default:
       return <DashboardPage />;

@@ -121,6 +121,10 @@ export const translations = {
     // 流程与规则
     rulesTitle: '流程与规则配置',
     rulesSubtitle: '集中维护流程模板、工作分配、舱位分配规则和基础配置',
+    actionRegistry: 'Action Registry',
+    taskLibrary: 'Task Library',
+    milestoneLibrary: 'Milestone Library',
+    workflowSimulation: 'Simulation',
     processTemplates: '流程模板',
     assignmentRules: '工作分配规则',
     allocationRules: '舱位分配规则',
@@ -566,6 +570,10 @@ export const translations = {
     // Rules
     rulesTitle: 'Process & Rules Configuration',
     rulesSubtitle: 'Manage process templates, work assignments, allocation rules, and basic configurations',
+    actionRegistry: 'Action Registry',
+    taskLibrary: 'Task Library',
+    milestoneLibrary: 'Milestone Library',
+    workflowSimulation: 'Simulation',
     processTemplates: 'Process Templates',
     assignmentRules: 'Work Assignment Rules',
     allocationRules: 'Space Allocation Rules',

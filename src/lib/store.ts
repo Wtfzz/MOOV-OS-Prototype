@@ -2,7 +2,7 @@ import { AppState, User, PORecord, POItem } from "@/types";
 
 const STORAGE_KEY = "moov-os-p1-state";
 const STATE_VERSION_KEY = "moov-os-p1-state-version";
-const CURRENT_STATE_VERSION = 13; // Increment when data structure changes significantly
+const CURRENT_STATE_VERSION = 14; // Increment when data structure changes significantly
 
 // Generate 40 sample PO records
 function generatePurchaseOrders(): PORecord[] {
@@ -439,6 +439,7 @@ const defaultState: AppState = {
       objectType: "PO",
       matchStrategy: "Exact One",
       fallbackTemplate: false,
+      milestoneDefinitionIds: ["md-po-confirmation", "md-carrier-booking", "md-allocation-check"],
       customer: "LIDL",
       pol: "CNSHA",
       pod: "DEHAM",
@@ -465,6 +466,7 @@ const defaultState: AppState = {
       objectType: "PO",
       matchStrategy: "Exact One",
       fallbackTemplate: false,
+      milestoneDefinitionIds: ["md-upload-po", "md-crd-update", "md-carrier-booking", "md-shipping-documents"],
       customer: "Pepco",
       pol: "CNSZX",
       pod: "PLPOZ",
@@ -545,23 +547,44 @@ const defaultState: AppState = {
     { id: "nt26", templateId: "pt2", milestoneId: "tn24", customer: "PEPCO", taskName: "Send pre-alert", taskType: "Pre-alert", sla: "", slaTypeId: "stc15", requiredFiles: "Pre-alert notice", automation: "Manual", status: "Active", remark: "Operation sends pre-alert notification after departure" },
   ],
   actionRegistry: [
-    { id: "act-po-review", label: "Review PO detail", businessObjectType: "PO", pageId: "execution-po", tabId: "generalInformation", actionType: "Review", requiredPermission: "View", completionEventId: "evt-po-reviewed", status: "Active", remark: "Open PO detail and confirm base information has been checked." },
-    { id: "act-po-confirm-crd", label: "Confirm PO CRD", businessObjectType: "PO", pageId: "execution-po", tabId: "generalInformation", actionType: "Confirm", requiredPermission: "Modify", completionEventId: "evt-po-crd-confirmed", status: "Active", remark: "Confirm or update cargo ready date on PO detail." },
-    { id: "act-po-upload-document", label: "Upload PO document", businessObjectType: "PO", pageId: "execution-po", tabId: "documents", actionType: "Upload", requiredPermission: "Modify", completionEventId: "evt-document-uploaded", status: "Active", remark: "Upload required PO or shipping documents." },
-    { id: "act-po-verify-document", label: "Verify document", businessObjectType: "PO", pageId: "execution-po", tabId: "documents", actionType: "Approve", requiredPermission: "Modify", completionEventId: "evt-document-verified", status: "Active", remark: "Verify uploaded document completeness." },
-    { id: "act-booking-create", label: "Create carrier booking", businessObjectType: "Booking", pageId: "execution-shipment", tabId: "carrierBooking", actionType: "Edit", requiredPermission: "Add", completionEventId: "evt-booking-confirmed", status: "Active", remark: "Create or confirm booking against carrier." },
-    { id: "act-booking-confirm-so", label: "Confirm SO received", businessObjectType: "Booking", pageId: "execution-shipment", tabId: "carrierBooking", actionType: "Confirm", requiredPermission: "Modify", completionEventId: "evt-so-confirmed", status: "Active", remark: "Confirm SO number and booking response." },
-    { id: "act-manual-assignment", label: "Resolve manual assignment", businessObjectType: "Task", pageId: "tasks-assignment", tabId: "manualAssignment", actionType: "Assign", requiredPermission: "Modify", completionEventId: "evt-task-assigned", status: "Active", remark: "Resolve no-match or conflict assignment tasks." },
+    { id: "act-po-review", label: "Review PO detail", businessLabel: "Review PO detail", moduleId: "businessExecution", businessObjectType: "PO", pageId: "execution-po", tabId: "generalInformation", actionType: "Review", requiredPermission: "View", completionEventId: "evt-po-reviewed", systemManaged: true, status: "Active", remark: "Open PO detail and confirm base information has been checked." },
+    { id: "act-po-confirm-crd", label: "Confirm PO CRD", businessLabel: "Confirm PO CRD", moduleId: "businessExecution", businessObjectType: "PO", pageId: "execution-po", tabId: "generalInformation", actionType: "Confirm", requiredPermission: "Modify", completionEventId: "evt-po-crd-confirmed", systemManaged: true, status: "Active", remark: "Confirm or update cargo ready date on PO detail." },
+    { id: "act-po-hold", label: "Hold PO", businessLabel: "Hold PO", moduleId: "businessExecution", businessObjectType: "PO", pageId: "execution-po", tabId: "generalInformation", actionType: "Edit", requiredPermission: "Modify", completionEventId: "evt-po-held", systemManaged: true, status: "Active", remark: "Put a PO on hold." },
+    { id: "act-po-upload-document", label: "Upload PO document", businessLabel: "Upload PO document", moduleId: "businessExecution", businessObjectType: "PO", pageId: "execution-po", tabId: "documents", actionType: "Upload", requiredPermission: "Modify", completionEventId: "evt-document-uploaded", systemManaged: true, status: "Active", remark: "Upload required PO or shipping documents." },
+    { id: "act-po-verify-document", label: "Verify document", businessLabel: "Verify document", moduleId: "businessExecution", businessObjectType: "PO", pageId: "execution-po", tabId: "documents", actionType: "Approve", requiredPermission: "Modify", completionEventId: "evt-document-verified", systemManaged: true, status: "Active", remark: "Verify uploaded document completeness." },
+    { id: "act-booking-create", label: "Create carrier booking", businessLabel: "Create carrier booking", moduleId: "businessExecution", businessObjectType: "Booking", pageId: "execution-shipment", tabId: "carrierBooking", actionType: "Edit", requiredPermission: "Add", completionEventId: "evt-booking-confirmed", systemManaged: true, status: "Active", remark: "Create or confirm booking against carrier." },
+    { id: "act-booking-confirm-so", label: "Confirm SO received", businessLabel: "Confirm SO received", moduleId: "businessExecution", businessObjectType: "Booking", pageId: "execution-shipment", tabId: "carrierBooking", actionType: "Confirm", requiredPermission: "Modify", completionEventId: "evt-so-confirmed", systemManaged: true, status: "Active", remark: "Confirm SO number and booking response." },
+    { id: "act-manual-assignment", label: "Resolve manual assignment", businessLabel: "Resolve manual assignment", moduleId: "taskWorkbench", businessObjectType: "Task", pageId: "tasks-assignment", tabId: "manualAssignment", actionType: "Assign", requiredPermission: "Modify", completionEventId: "evt-task-assigned", systemManaged: true, status: "Active", remark: "Resolve no-match or conflict assignment tasks." },
   ],
   eventRegistry: [
     { id: "evt-po-reviewed", label: "PO reviewed", sourcePageId: "execution-po", businessObjectType: "PO", effect: "Complete Task", status: "Active", remark: "Completes review task and records audit." },
     { id: "evt-po-crd-confirmed", label: "PO CRD confirmed", sourcePageId: "execution-po", businessObjectType: "PO", effect: "Complete Task", status: "Active", remark: "Completes CRD task and may open next milestone." },
+    { id: "evt-po-held", label: "PO held", sourcePageId: "execution-po", businessObjectType: "PO", effect: "Audit Only", status: "Active", remark: "Records hold action." },
     { id: "evt-document-uploaded", label: "Document uploaded", sourcePageId: "execution-po", businessObjectType: "PO", effect: "Complete Task", status: "Active", remark: "Completes upload task and can create verification task." },
     { id: "evt-document-verified", label: "Document verified", sourcePageId: "execution-po", businessObjectType: "PO", effect: "Complete Task", status: "Active", remark: "Completes document verification." },
     { id: "evt-booking-confirmed", label: "Booking confirmed", sourcePageId: "execution-shipment", businessObjectType: "Booking", effect: "Open Next Milestone", status: "Active", remark: "Completes carrier booking and opens SO confirmation." },
     { id: "evt-so-confirmed", label: "SO confirmed", sourcePageId: "execution-shipment", businessObjectType: "Booking", effect: "Complete Task", status: "Active", remark: "Completes SO confirmation task." },
     { id: "evt-task-assigned", label: "Task assigned", sourcePageId: "tasks-assignment", businessObjectType: "Task", effect: "Audit Only", status: "Active", remark: "Records manual assignment as an event, not a business task." },
   ],
+  taskDefinitions: [
+    { id: "td-review-po", taskName: "Review PO detail", taskType: "PO Verification", businessObjectType: "PO", primaryActionId: "act-po-review", supportingActionIds: [], generationMode: "Always", generationCondition: "PO is created", slaTypeId: "stc1", assignmentScope: "Origin Ops", status: "Active", remark: "Reusable PO review task definition." },
+    { id: "td-confirm-crd", taskName: "Confirm CRD", taskType: "CRD Confirmation", businessObjectType: "PO", primaryActionId: "act-po-confirm-crd", supportingActionIds: ["act-po-review"], generationMode: "Conditional", generationCondition: "Supplier CRD is empty or changed", slaTypeId: "stc1", assignmentScope: "Origin Ops", status: "Active", remark: "Confirm cargo ready date against supplier input." },
+    { id: "td-upload-doc", taskName: "Upload shipping document", taskType: "Document Upload", businessObjectType: "PO", primaryActionId: "act-po-upload-document", supportingActionIds: [], generationMode: "Always", generationCondition: "Required document is missing", slaTypeId: "stc13", assignmentScope: "Supplier/OHA", status: "Active", remark: "Upload required operational document." },
+    { id: "td-verify-doc", taskName: "Verify shipping document", taskType: "Document Verification", businessObjectType: "PO", primaryActionId: "act-po-verify-document", supportingActionIds: ["act-po-upload-document"], generationMode: "Conditional", generationCondition: "Uploaded document exists", slaTypeId: "stc15", assignmentScope: "Origin Ops", status: "Active", remark: "Verify document completeness." },
+    { id: "td-create-booking", taskName: "Create carrier booking", taskType: "Carrier Booking", businessObjectType: "Booking", primaryActionId: "act-booking-create", supportingActionIds: ["act-po-review"], generationMode: "Always", generationCondition: "Carrier booking milestone opens", slaTypeId: "stc10", assignmentScope: "Booking Team", status: "Active", remark: "Create or confirm booking with carrier." },
+    { id: "td-confirm-so", taskName: "Confirm SO received", taskType: "SO Confirmation", businessObjectType: "Booking", primaryActionId: "act-booking-confirm-so", supportingActionIds: ["act-booking-create"], generationMode: "Conditional", generationCondition: "SO number is empty", slaTypeId: "stc8", assignmentScope: "Booking Team", status: "Active", remark: "Confirm carrier SO received." },
+  ],
+  milestoneDefinitions: [
+    { id: "md-po-confirmation", milestoneName: "PO Confirmation", businessStage: "Order Intake", displaySeq: 1, completionRule: "All Tasks", taskDefinitionIds: ["td-review-po", "td-confirm-crd"], status: "Active", remark: "Initial PO validation and CRD confirmation." },
+    { id: "md-upload-po", milestoneName: "Upload PO", businessStage: "Order Intake", displaySeq: 1, completionRule: "Key Tasks", taskDefinitionIds: ["td-review-po"], status: "Active", remark: "PO data capture stage." },
+    { id: "md-crd-update", milestoneName: "CRD Update", businessStage: "Order Readiness", displaySeq: 2, completionRule: "All Tasks", taskDefinitionIds: ["td-confirm-crd"], status: "Active", remark: "Cargo readiness update stage." },
+    { id: "md-carrier-booking", milestoneName: "Carrier Booking", businessStage: "Booking", displaySeq: 3, completionRule: "All Tasks", taskDefinitionIds: ["td-create-booking", "td-confirm-so"], status: "Active", remark: "Carrier booking and SO confirmation." },
+    { id: "md-allocation-check", milestoneName: "Allocation Check", businessStage: "Capacity", displaySeq: 4, completionRule: "Manual", taskDefinitionIds: [], status: "Active", remark: "Reserved for allocation-related tasks." },
+    { id: "md-shipping-documents", milestoneName: "Shipping Documents", businessStage: "Documentation", displaySeq: 5, completionRule: "All Tasks", taskDefinitionIds: ["td-upload-doc", "td-verify-doc"], status: "Active", remark: "Upload and verify shipping documents." },
+  ],
+  processInstances: [],
+  milestoneInstances: [],
+  taskInstances: [],
   workAssignmentRules: [
     { id: "wr1", objectType: "Task", customer: "LIDL", taskType: "核对 PO", region: "Asia", country: "CN", pol: "CNSHA", pod: "DEHAM", lane: "Asia-Europe", transportMode: "Ocean", assignmentLevel: "User", target: "Ops User", manualAdjust: "Allowed", priority: "High", status: "Active", templateId: "pt1", milestoneId: "tn1", milestoneTaskId: "nt1", remark: "PO verification assigned to ops user" },
     { id: "wr2", objectType: "Task", customer: "LIDL", taskType: "确认 CRD", region: "Asia", country: "CN", pol: "CNSHA", pod: "DEHAM", lane: "Asia-Europe", transportMode: "Ocean", assignmentLevel: "User", target: "Ops User", manualAdjust: "Allowed", priority: "High", status: "Active", templateId: "pt1", milestoneId: "tn1", milestoneTaskId: "nt2", remark: "CRD confirmation assigned to ops user" },

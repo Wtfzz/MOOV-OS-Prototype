@@ -1,24 +1,24 @@
 import { useState } from "react";
-import { Workflow, UserCog, Clock, LayoutTemplate, Mail } from "lucide-react";
-import ProcessTemplatesTab from "./rules/ProcessTemplatesTab";
+import { Workflow, UserCog, Clock, MousePointerClick, ClipboardList, Layers3, Play } from "lucide-react";
 import AssignmentRulesTab from "./rules/AssignmentRulesTab";
 import SlaTypesTab from "./rules/config/SlaTypesTab";
-import TemplateSubjectConfigTab from "./rules/config/TemplateSubjectConfigTab";
-import EmailNotificationTemplatesTab from "./rules/config/EmailNotificationTemplatesTab";
+import ActionFirstWorkflowTab from "./rules/ActionFirstWorkflowTab";
 import { loadState, saveState } from "@/lib/store";
 import { t, getCurrentLanguage, type Language } from "@/lib/i18n";
 
 const workflowTabs = [
-  { id: "slaTypes", labelKey: "slaTypes", icon: Clock },
-  { id: "templateSubject", labelKey: "templateSubjectConfig", icon: LayoutTemplate },
+  { id: "actions", labelKey: "actionRegistry", icon: MousePointerClick },
+  { id: "tasks", labelKey: "taskLibrary", icon: ClipboardList },
+  { id: "milestones", labelKey: "milestoneLibrary", icon: Layers3 },
   { id: "templates", labelKey: "processTemplates", icon: Workflow },
   { id: "assignment", labelKey: "assignmentRules", icon: UserCog },
-  { id: "emailNotifications", labelKey: "emailNotificationTemplates", icon: Mail },
+  { id: "slaTypes", labelKey: "slaTypes", icon: Clock },
+  { id: "simulation", labelKey: "workflowSimulation", icon: Play },
 ];
 
 export default function WorkflowConfigPage() {
   const [lang] = useState<Language>(getCurrentLanguage());
-  const [activeTab, setActiveTab] = useState("slaTypes");
+  const [activeTab, setActiveTab] = useState("actions");
   const [state, setState] = useState(loadState());
 
   const handleStateChange = (updater: any) => {
@@ -52,16 +52,12 @@ export default function WorkflowConfigPage() {
 
         {/* Content */}
         <div className="p-4">
-          {activeTab === "templates" ? (
-            <ProcessTemplatesTab state={state} setState={handleStateChange} saveState={saveState} />
+          {activeTab === "actions" || activeTab === "tasks" || activeTab === "milestones" || activeTab === "templates" || activeTab === "simulation" ? (
+            <ActionFirstWorkflowTab mode={activeTab === "templates" ? "processes" : activeTab as any} state={state} setState={handleStateChange} saveState={saveState} />
           ) : activeTab === "assignment" ? (
             <AssignmentRulesTab state={state} setState={handleStateChange} saveState={saveState} />
           ) : activeTab === "slaTypes" ? (
             <SlaTypesTab state={state} setState={handleStateChange} saveState={saveState} />
-          ) : activeTab === "templateSubject" ? (
-            <TemplateSubjectConfigTab state={state} setState={handleStateChange} saveState={saveState} />
-          ) : activeTab === "emailNotifications" ? (
-            <EmailNotificationTemplatesTab state={state} setState={handleStateChange} saveState={saveState} />
           ) : null}
         </div>
       </div>
