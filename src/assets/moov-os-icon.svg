@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="MOOV OS">
+  <rect width="48" height="48" rx="10" fill="#ffffff"/>
+  <path d="M10 34V14h6.3l7.7 11.2L31.7 14H38v20h-6V23.5l-6.1 8.4h-3.8L16 23.5V34h-6z" fill="#004F7C"/>
+  <circle cx="35.5" cy="13.5" r="4" fill="#FE5000"/>
+  <path d="M9 39h30" stroke="#FE5000" stroke-width="3" stroke-linecap="round"/>
+</svg>
