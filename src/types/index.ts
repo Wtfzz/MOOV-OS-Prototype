@@ -51,6 +51,9 @@ export interface Org {
 export interface ProcessTemplate {
   id: string;
   templateName: string;
+  objectType?: 'PO' | 'Shipment' | 'Booking' | 'Exception';
+  matchStrategy?: 'Exact One' | 'Fallback';
+  fallbackTemplate?: boolean;
   // Legacy fields for backward compatibility
   customer: string;
   pol: string;
@@ -151,11 +154,38 @@ export interface MilestoneTask {
   customer?: string;
   taskName: string;
   taskType: string;
+  generationMode?: 'Always' | 'Conditional' | 'Exception' | 'Manual';
+  generationCondition?: string;
+  targetActionId?: string;
+  completionEventId?: string;
   sla: string | SlaRule; // Legacy field for backward compatibility
   slaTypeId?: string; // Reference to SlaTypeConfig (new primary field)
   requiredFiles: string;
   automation: 'Manual' | 'Semi-auto' | 'Auto';
   status: 'Active' | 'Inactive' | 'Draft';
+  remark?: string;
+}
+
+export interface ActionRegistryItem {
+  id: string;
+  label: string;
+  businessObjectType: 'PO' | 'Shipment' | 'Booking' | 'Allocation' | 'Exception' | 'Task';
+  pageId: string;
+  tabId?: string;
+  actionType: 'Review' | 'Edit' | 'Upload' | 'Approve' | 'Confirm' | 'Assign' | 'Resolve';
+  requiredPermission: PermissionAction;
+  completionEventId: string;
+  status: 'Active' | 'Inactive';
+  remark?: string;
+}
+
+export interface EventRegistryItem {
+  id: string;
+  label: string;
+  sourcePageId: string;
+  businessObjectType: 'PO' | 'Shipment' | 'Booking' | 'Allocation' | 'Exception' | 'Task';
+  effect: 'Complete Task' | 'Open Next Milestone' | 'Create Exception Task' | 'Notify' | 'Audit Only';
+  status: 'Active' | 'Inactive';
   remark?: string;
 }
 
@@ -418,6 +448,8 @@ export interface AppState {
   processTemplates: ProcessTemplate[];
   milestones: Milestone[];
   milestoneTasks: MilestoneTask[];
+  actionRegistry?: ActionRegistryItem[];
+  eventRegistry?: EventRegistryItem[];
   workAssignmentRules: WorkAssignmentRule[];
   allocationRules: AllocationRule[];
   // Basic Config - Independent tabs per PRD
@@ -936,6 +968,8 @@ export interface AppState {
   processTemplates: ProcessTemplate[];
   milestones: Milestone[];
   milestoneTasks: MilestoneTask[];
+  actionRegistry?: ActionRegistryItem[];
+  eventRegistry?: EventRegistryItem[];
   workAssignmentRules: WorkAssignmentRule[];
   // Two-tier Assignment Rules - PRD v2.0
   teamAssignmentRules: TeamAssignmentRule[];

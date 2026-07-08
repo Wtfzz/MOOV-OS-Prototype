@@ -2,7 +2,7 @@ import { AppState, User, PORecord, POItem } from "@/types";
 
 const STORAGE_KEY = "moov-os-p1-state";
 const STATE_VERSION_KEY = "moov-os-p1-state-version";
-const CURRENT_STATE_VERSION = 12; // Increment when data structure changes significantly
+const CURRENT_STATE_VERSION = 13; // Increment when data structure changes significantly
 
 // Generate 40 sample PO records
 function generatePurchaseOrders(): PORecord[] {
@@ -436,6 +436,9 @@ const defaultState: AppState = {
     {
       id: "pt1",
       templateName: "LIDL Asia-Europe Ocean Export",
+      objectType: "PO",
+      matchStrategy: "Exact One",
+      fallbackTemplate: false,
       customer: "LIDL",
       pol: "CNSHA",
       pod: "DEHAM",
@@ -459,6 +462,9 @@ const defaultState: AppState = {
     {
       id: "pt2",
       templateName: "Pepco Europe Multi-modal Basic",
+      objectType: "PO",
+      matchStrategy: "Exact One",
+      fallbackTemplate: false,
       customer: "Pepco",
       pol: "CNSZX",
       pod: "PLPOZ",
@@ -537,6 +543,24 @@ const defaultState: AppState = {
     { id: "nt24", templateId: "pt2", milestoneId: "tn22", customer: "PEPCO", taskName: "Check container status", taskType: "Vessel Departure Check", sla: "", slaTypeId: "stc15", requiredFiles: "Container status", automation: "Manual", status: "Active", remark: "Check container status after vessel departure" },
     { id: "nt25", templateId: "pt2", milestoneId: "tn23", customer: "PEPCO", taskName: "Release HBL and invoice to supplier", taskType: "HBL Release", sla: "", slaTypeId: "stc15", requiredFiles: "HBL and invoice", automation: "Manual", status: "Active", remark: "Operation releases HBL and invoice to supplier after departure" },
     { id: "nt26", templateId: "pt2", milestoneId: "tn24", customer: "PEPCO", taskName: "Send pre-alert", taskType: "Pre-alert", sla: "", slaTypeId: "stc15", requiredFiles: "Pre-alert notice", automation: "Manual", status: "Active", remark: "Operation sends pre-alert notification after departure" },
+  ],
+  actionRegistry: [
+    { id: "act-po-review", label: "Review PO detail", businessObjectType: "PO", pageId: "execution-po", tabId: "generalInformation", actionType: "Review", requiredPermission: "View", completionEventId: "evt-po-reviewed", status: "Active", remark: "Open PO detail and confirm base information has been checked." },
+    { id: "act-po-confirm-crd", label: "Confirm PO CRD", businessObjectType: "PO", pageId: "execution-po", tabId: "generalInformation", actionType: "Confirm", requiredPermission: "Modify", completionEventId: "evt-po-crd-confirmed", status: "Active", remark: "Confirm or update cargo ready date on PO detail." },
+    { id: "act-po-upload-document", label: "Upload PO document", businessObjectType: "PO", pageId: "execution-po", tabId: "documents", actionType: "Upload", requiredPermission: "Modify", completionEventId: "evt-document-uploaded", status: "Active", remark: "Upload required PO or shipping documents." },
+    { id: "act-po-verify-document", label: "Verify document", businessObjectType: "PO", pageId: "execution-po", tabId: "documents", actionType: "Approve", requiredPermission: "Modify", completionEventId: "evt-document-verified", status: "Active", remark: "Verify uploaded document completeness." },
+    { id: "act-booking-create", label: "Create carrier booking", businessObjectType: "Booking", pageId: "execution-shipment", tabId: "carrierBooking", actionType: "Edit", requiredPermission: "Add", completionEventId: "evt-booking-confirmed", status: "Active", remark: "Create or confirm booking against carrier." },
+    { id: "act-booking-confirm-so", label: "Confirm SO received", businessObjectType: "Booking", pageId: "execution-shipment", tabId: "carrierBooking", actionType: "Confirm", requiredPermission: "Modify", completionEventId: "evt-so-confirmed", status: "Active", remark: "Confirm SO number and booking response." },
+    { id: "act-manual-assignment", label: "Resolve manual assignment", businessObjectType: "Task", pageId: "tasks-assignment", tabId: "manualAssignment", actionType: "Assign", requiredPermission: "Modify", completionEventId: "evt-task-assigned", status: "Active", remark: "Resolve no-match or conflict assignment tasks." },
+  ],
+  eventRegistry: [
+    { id: "evt-po-reviewed", label: "PO reviewed", sourcePageId: "execution-po", businessObjectType: "PO", effect: "Complete Task", status: "Active", remark: "Completes review task and records audit." },
+    { id: "evt-po-crd-confirmed", label: "PO CRD confirmed", sourcePageId: "execution-po", businessObjectType: "PO", effect: "Complete Task", status: "Active", remark: "Completes CRD task and may open next milestone." },
+    { id: "evt-document-uploaded", label: "Document uploaded", sourcePageId: "execution-po", businessObjectType: "PO", effect: "Complete Task", status: "Active", remark: "Completes upload task and can create verification task." },
+    { id: "evt-document-verified", label: "Document verified", sourcePageId: "execution-po", businessObjectType: "PO", effect: "Complete Task", status: "Active", remark: "Completes document verification." },
+    { id: "evt-booking-confirmed", label: "Booking confirmed", sourcePageId: "execution-shipment", businessObjectType: "Booking", effect: "Open Next Milestone", status: "Active", remark: "Completes carrier booking and opens SO confirmation." },
+    { id: "evt-so-confirmed", label: "SO confirmed", sourcePageId: "execution-shipment", businessObjectType: "Booking", effect: "Complete Task", status: "Active", remark: "Completes SO confirmation task." },
+    { id: "evt-task-assigned", label: "Task assigned", sourcePageId: "tasks-assignment", businessObjectType: "Task", effect: "Audit Only", status: "Active", remark: "Records manual assignment as an event, not a business task." },
   ],
   workAssignmentRules: [
     { id: "wr1", objectType: "Task", customer: "LIDL", taskType: "核对 PO", region: "Asia", country: "CN", pol: "CNSHA", pod: "DEHAM", lane: "Asia-Europe", transportMode: "Ocean", assignmentLevel: "User", target: "Ops User", manualAdjust: "Allowed", priority: "High", status: "Active", templateId: "pt1", milestoneId: "tn1", milestoneTaskId: "nt1", remark: "PO verification assigned to ops user" },
