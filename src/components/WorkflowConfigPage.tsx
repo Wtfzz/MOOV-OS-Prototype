@@ -1,26 +1,24 @@
 import { useState } from "react";
-import { Workflow, UserCog, Clock, LayoutTemplate, Mail, Route } from "lucide-react";
+import { Workflow, UserCog, Clock, LayoutTemplate, Mail } from "lucide-react";
 import ProcessTemplatesTab from "./rules/ProcessTemplatesTab";
 import AssignmentRulesTab from "./rules/AssignmentRulesTab";
 import SlaTypesTab from "./rules/config/SlaTypesTab";
 import TemplateSubjectConfigTab from "./rules/config/TemplateSubjectConfigTab";
 import EmailNotificationTemplatesTab from "./rules/config/EmailNotificationTemplatesTab";
-import OrchestrationModelTab from "./rules/OrchestrationModelTab";
 import { loadState, saveState } from "@/lib/store";
 import { t, getCurrentLanguage, type Language } from "@/lib/i18n";
 
 const workflowTabs = [
-  { id: "orchestration", labelKey: "orchestrationModel", icon: Route },
   { id: "slaTypes", labelKey: "slaTypes", icon: Clock },
   { id: "templateSubject", labelKey: "templateSubjectConfig", icon: LayoutTemplate },
-  { id: "templates", labelKey: "templateDesigner", icon: Workflow },
+  { id: "templates", labelKey: "processTemplates", icon: Workflow },
   { id: "assignment", labelKey: "assignmentRules", icon: UserCog },
   { id: "emailNotifications", labelKey: "emailNotificationTemplates", icon: Mail },
 ];
 
 export default function WorkflowConfigPage() {
   const [lang] = useState<Language>(getCurrentLanguage());
-  const [activeTab, setActiveTab] = useState("orchestration");
+  const [activeTab, setActiveTab] = useState("slaTypes");
   const [state, setState] = useState(loadState());
 
   const handleStateChange = (updater: any) => {
@@ -54,9 +52,7 @@ export default function WorkflowConfigPage() {
 
         {/* Content */}
         <div className="p-4">
-          {activeTab === "orchestration" ? (
-            <OrchestrationModelTab state={state} setState={handleStateChange} saveState={saveState} />
-          ) : activeTab === "templates" ? (
+          {activeTab === "templates" ? (
             <ProcessTemplatesTab state={state} setState={handleStateChange} saveState={saveState} />
           ) : activeTab === "assignment" ? (
             <AssignmentRulesTab state={state} setState={handleStateChange} saveState={saveState} />
