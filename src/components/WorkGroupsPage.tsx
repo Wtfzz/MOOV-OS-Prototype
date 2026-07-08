@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { loadState, saveState } from "@/lib/store";
-import type { WorkGroup, WorkGroupDataScopeFilter, WorkGroupFilterField, WorkGroupFilterOperator, WorkGroupType } from "@/types";
+import type { User, WorkGroup, WorkGroupDataScopeFilter, WorkGroupFilterField, WorkGroupFilterOperator, WorkGroupType } from "@/types";
 import ConfirmDialog from "./ConfirmDialog";
 
 const GROUP_TYPES: WorkGroupType[] = ["Operations", "Customer Service", "OHA", "Finance", "Warehouse", "Management", "Other"];
@@ -33,11 +33,13 @@ export default function WorkGroupsPage() {
   const [state, setState] = useState(() => loadState());
   const [editingGroup, setEditingGroup] = useState<WorkGroup | null>(null);
   const [draft, setDraft] = useState<WorkGroup | null>(null);
+  const [draftMemberIds, setDraftMemberIds] = useState<string[]>([]);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [formError, setFormError] = useState("");
   const [newFilterField, setNewFilterField] = useState<WorkGroupFilterField>("Client");
 
   const groups = state.workGroups || [];
+  const users: User[] = state.users || [];
 
   const valueOptions = useMemo<Record<WorkGroupFilterField, string[]>>(() => {
     const clients = uniq((state.clients || []).flatMap((client: any) => [client.clientCode, client.customerCode]));
@@ -62,6 +64,7 @@ export default function WorkGroupsPage() {
   const openCreate = () => {
     const number = nextWorkGroupNumber(groups);
     setEditingGroup(null);
+    setDraftMemberIds([]);
     setDraft({
       id: number,
       workGroupNumber: number,
@@ -84,12 +87,14 @@ export default function WorkGroupsPage() {
   const openEdit = (group: WorkGroup) => {
     setEditingGroup(group);
     setDraft({ ...group, filters: [...(group.filters || [])] });
+    setDraftMemberIds(users.filter((user) => (user.workGroupIds || []).includes(group.id)).map((user) => user.id));
     setFormError("");
   };
 
   const closeEditor = () => {
     setEditingGroup(null);
     setDraft(null);
+    setDraftMemberIds([]);
     setFormError("");
   };
 
@@ -118,6 +123,14 @@ export default function WorkGroupsPage() {
   const removeFilter = (id: string) => {
     if (!draft) return;
     updateDraft({ filters: draft.filters.filter((filter) => filter.id !== id) });
+  };
+
+  const groupMembers = (groupId: string) => users.filter((user) => (user.workGroupIds || []).includes(groupId));
+
+  const toggleDraftMember = (userId: string) => {
+    setDraftMemberIds((current) =>
+      current.includes(userId) ? current.filter((id) => id !== userId) : [...current, userId],
+    );
   };
 
   const handleSave = () => {
@@ -150,7 +163,15 @@ export default function WorkGroupsPage() {
       updatedBy: "Current User",
     };
     const nextGroups = editingGroup ? groups.map((group) => group.id === editingGroup.id ? normalized : group) : [...groups, normalized];
-    const nextState = { ...state, workGroups: nextGroups };
+    const memberSet = new Set(draftMemberIds);
+    const previousGroupId = editingGroup?.id || normalized.id;
+    const nextUsers = users.map((user) => {
+      const currentIds = (user.workGroupIds || []).filter((id) => id !== previousGroupId && id !== normalized.id);
+      return memberSet.has(user.id)
+        ? { ...user, workGroupIds: [...currentIds, normalized.id], updatedAt: nowStamp(), updatedBy: "Current User" }
+        : { ...user, workGroupIds: currentIds, updatedAt: nowStamp(), updatedBy: "Current User" };
+    });
+    const nextState = { ...state, users: nextUsers, workGroups: nextGroups };
     setState(nextState);
     saveState(nextState);
     closeEditor();
@@ -186,6 +207,7 @@ export default function WorkGroupsPage() {
               <th className="px-4 py-3 text-left text-sm font-semibold">Name</th>
               <th className="px-4 py-3 text-left text-sm font-semibold">Type</th>
               <th className="px-4 py-3 text-left text-sm font-semibold">Owner</th>
+              <th className="px-4 py-3 text-left text-sm font-semibold">Members</th>
               <th className="px-4 py-3 text-left text-sm font-semibold">Data Scope</th>
               <th className="px-4 py-3 text-left text-sm font-semibold">Task Queue</th>
               <th className="px-4 py-3 text-left text-sm font-semibold">Status</th>
@@ -199,6 +221,15 @@ export default function WorkGroupsPage() {
                 <td className="px-4 py-3 text-sm font-semibold">{group.workGroupName}</td>
                 <td className="px-4 py-3 text-sm">{group.workGroupType}</td>
                 <td className="px-4 py-3 text-sm">{group.owner || "-"}</td>
+                <td className="px-4 py-3 text-sm">
+                  <div className="flex flex-wrap gap-1">
+                    {groupMembers(group.id).length ? groupMembers(group.id).map((user) => (
+                      <span key={user.id} className="inline-block rounded-full bg-blue-soft px-2 py-0.5 text-xs text-blue">
+                        {user.name}
+                      </span>
+                    )) : <span className="text-muted-foreground">-</span>}
+                  </div>
+                </td>
                 <td className="px-4 py-3 text-sm max-w-xl truncate" title={summarizeFilters(group.filters || [])}>{summarizeFilters(group.filters || [])}</td>
                 <td className="px-4 py-3 text-sm">{group.taskQueueEnabled ? "Enabled" : "Disabled"}</td>
                 <td className="px-4 py-3 text-sm">{group.status}</td>
@@ -261,6 +292,31 @@ export default function WorkGroupsPage() {
                   <span>Description</span>
                   <textarea value={draft.description || ""} onChange={(event) => updateDraft({ description: event.target.value })} className="w-full border rounded-md px-3 py-2 min-h-[80px]" />
                 </label>
+              </div>
+
+              <div className="space-y-3">
+                <div>
+                  <h3 className="font-semibold">Members</h3>
+                  <p className="text-xs text-muted-foreground">Select user accounts that belong to this Work Group. The User page will show the same group membership automatically.</p>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 rounded-lg border border-border p-3">
+                  {users.length === 0 ? (
+                    <div className="text-sm text-muted-foreground">No user accounts available.</div>
+                  ) : users.map((user) => (
+                    <label key={user.id} className={`flex items-center justify-between gap-3 rounded-md border px-3 py-2 text-sm ${draftMemberIds.includes(user.id) ? "border-brand bg-brand-soft/60" : "border-border bg-white"}`}>
+                      <span className="min-w-0">
+                        <span className="block truncate font-medium">{user.name}</span>
+                        <span className="block truncate text-xs text-muted-foreground">{user.email || user.userNumber}</span>
+                      </span>
+                      <input
+                        type="checkbox"
+                        checked={draftMemberIds.includes(user.id)}
+                        onChange={() => toggleDraftMember(user.id)}
+                        className="h-4 w-4"
+                      />
+                    </label>
+                  ))}
+                </div>
               </div>
 
               <div className="space-y-3">
