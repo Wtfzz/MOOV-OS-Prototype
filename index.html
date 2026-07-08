@@ -28,6 +28,20 @@
       }
     </style>
     <script>
+      (function() {
+        var params = new URLSearchParams(window.location.search);
+        var redirectPath = params.get('spa-redirect');
+        if (redirectPath) {
+          params.delete('spa-redirect');
+          var query = params.toString();
+          window.history.replaceState(
+            null,
+            '',
+            redirectPath + (query ? '?' + query : '') + window.location.hash
+          );
+        }
+      })();
+
       // 在 React 加载前立即设置主题，避免闪烁
       (function() {
         const isInIframe = window.self !== window.top;

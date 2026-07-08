@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>MOOV OS</title>
+    <script>
+      (function() {
+        var base = '/MOOV-OS-Prototype';
+        var path = window.location.pathname;
+        var relativePath = path.indexOf(base) === 0 ? path.slice(base.length) : path;
+        if (!relativePath || relativePath === '/') {
+          relativePath = '/';
+        }
+        var target = base + '/?spa-redirect=' + encodeURIComponent(relativePath);
+        if (window.location.search) {
+          target += '&' + window.location.search.slice(1);
+        }
+        if (window.location.hash) {
+          target += window.location.hash;
+        }
+        window.location.replace(target);
+      })();
+    </script>
+  </head>
+  <body></body>
+</html>
