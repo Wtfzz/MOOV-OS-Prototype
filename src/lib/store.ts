@@ -2,7 +2,7 @@ import { AppState, User, PORecord, POItem } from "@/types";
 
 const STORAGE_KEY = "moov-os-p1-state";
 const STATE_VERSION_KEY = "moov-os-p1-state-version";
-const CURRENT_STATE_VERSION = 10; // Increment when data structure changes significantly
+const CURRENT_STATE_VERSION = 11; // Increment when data structure changes significantly
 
 // Generate 40 sample PO records
 function generatePurchaseOrders(): PORecord[] {
@@ -328,6 +328,11 @@ const defaultState: AppState = {
     { id: "u1", userNumber: "U001", name: "Grace Chen", email: "admin@moov.local", phone: "+86 138 0000 0000", roleIds: ["ADMIN"], workGroupIds: ["WG001", "WG002"], active: true, createdBy: "System", createdAt: "2026-06-01" },
     { id: "u2", userNumber: "U002", name: "Ops User", email: "ops@moov.local", phone: "+86 139 0000 0000", roleIds: ["OPS"], workGroupIds: ["WG001"], active: true, createdBy: "admin@moov.local", createdAt: "2026-06-15" },
     { id: "u3", userNumber: "U003", name: "OHA User", email: "supplier@moov.local", phone: "+86 137 0000 0000", roleIds: ["OHA"], workGroupIds: ["WG003"], active: true, createdBy: "admin@moov.local", createdAt: "2026-06-20" },
+    { id: "u4", userNumber: "U004", name: "Alice Wang", email: "alice.wang@moov.com", phone: "+86 136 1000 2101", roleIds: ["CS"], workGroupIds: ["WG002"], active: true, createdBy: "admin@moov.local", createdAt: "2026-07-01" },
+    { id: "u5", userNumber: "U005", name: "Bob Li", email: "bob.li@moov.com", phone: "+86 136 1000 2102", roleIds: ["OPS"], workGroupIds: ["WG002"], active: true, createdBy: "admin@moov.local", createdAt: "2026-07-01" },
+    { id: "u6", userNumber: "U006", name: "Charlie Zhang", email: "charlie.zhang@moov.com", phone: "+86 136 1000 2103", roleIds: ["OPS"], workGroupIds: ["WG001"], active: true, createdBy: "admin@moov.local", createdAt: "2026-07-02" },
+    { id: "u7", userNumber: "U007", name: "Mia Chen", email: "mia.chen@moov.com", phone: "+86 136 1000 2104", roleIds: ["CS"], workGroupIds: ["WG001", "WG002"], active: true, createdBy: "admin@moov.local", createdAt: "2026-07-02" },
+    { id: "u8", userNumber: "U008", name: "Kenji Sato", email: "kenji.sato@moov.com", phone: "+81 90 1000 2105", roleIds: ["OHA"], workGroupIds: ["WG003"], active: true, createdBy: "admin@moov.local", createdAt: "2026-07-03" },
   ],
   roles: [
     { id: "ADMIN", roleNumber: "R001", roleName: "System Admin", roleType: "System", description: "Full system access with all permissions", active: true, createdAt: "2026-06-01" },
@@ -547,8 +552,8 @@ const defaultState: AppState = {
     { id: "tar2", customer: "LIDL", originRegion: "Asia", destinationRegion: "Europe", transportMode: "Ocean", priority: "High", targetTeam: "Ocean Freight Team", assignerRole: "Operation Manager", scopeOwnerRole: "Admin", status: "Active", remark: "LIDL ocean freight assigned to Ocean Freight Team" },
   ],
   userAssignmentRules: [
-    { id: "uar1", teamId: "Europe Ops Team", templateId: "pt2", milestoneId: "tn13", taskId: "nt15", taskType: "SO Confirmation", roleRequired: "Customer Service", targetUser: "Alice Wang", backupUser: "Bob Li", workloadStrategy: "Round Robin", assignerRole: "Team Leader", scopeOwnerRole: "Team Leader", status: "Active", remark: "SO confirmation tasks assigned to Alice with Bob as backup" },
-    { id: "uar2", teamId: "Europe Ops Team", templateId: "pt2", milestoneId: "tn12", taskId: "nt14", taskType: "Carrier Booking", roleRequired: "Customer Service", targetUser: "Charlie Zhang", workloadStrategy: "Least Loaded", assignerRole: "Team Leader", scopeOwnerRole: "Team Leader", status: "Active", remark: "Carrier booking tasks assigned based on workload" },
+    { id: "uar1", workGroupId: "WG002", teamId: "WG002", customers: ["PEPCO"], regions: ["Europe"], countries: ["PL", "NL"], pols: [], templateId: "pt2", milestoneId: "tn13", taskId: "nt15", taskType: "SO Confirmation", roleRequired: "Customer Service", targetUser: "u4", backupUser: "u5", status: "Active", remark: "SO confirmation tasks assigned to Alice with Bob as backup." },
+    { id: "uar2", workGroupId: "WG001", teamId: "WG001", customers: ["LIDL-GLOBAL"], regions: ["Asia"], countries: ["CN"], pols: ["CNSHA"], templateId: "pt1", milestoneId: "tn1", taskId: "nt2", taskType: "Confirm CRD", roleRequired: "Operations", targetUser: "u6", backupUser: "u7", status: "Active", remark: "China origin CRD confirmation assigned within China Origin Ops." },
   ],
   fallbackAssignmentRules: [
     { id: "far1", condition: "No matching team rule", fallbackQueue: "General Queue", escalationRole: "Department Head", escalationSla: "24h", status: "Active", remark: "Tasks without team assignment go to general queue" },

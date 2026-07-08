@@ -227,6 +227,14 @@ export default function AssignmentRulesTab({ state, setState, saveState }: Assig
   const templateLabel = (id?: string) => templateOptions.find((option) => option.value === id)?.label || id || "-";
   const workGroupLabel = (id?: string) => workGroupOptions.find((option) => option.value === id)?.label || id || "-";
   const userLabel = (id?: string) => userOptions.find((option) => option.value === id)?.label || (state.users || []).find((user: any) => user.id === id)?.name || id || "-";
+  const resolveUserId = (value?: string) => {
+    if (!value) return "";
+    const normalized = value.toLowerCase();
+    const user = (state.users || []).find((item: any) =>
+      item.id === value || item.userNumber === value || item.name?.toLowerCase() === normalized || item.email?.toLowerCase() === normalized,
+    );
+    return user?.id || value;
+  };
 
   const normalizeTeamRule = (rule: TeamAssignmentRule): RuleDraft => {
     const legacyRegions = uniq([rule.originRegion, rule.destinationRegion]);
@@ -249,6 +257,8 @@ export default function AssignmentRulesTab({ state, setState, saveState }: Assig
     regions: rule.regions || [],
     countries: rule.countries || [],
     pols: rule.pols || [],
+    targetUser: resolveUserId(rule.targetUser),
+    backupUser: resolveUserId(rule.backupUser),
     status: rule.status === "Inactive" ? "Inactive" : "Active",
   });
 
@@ -496,10 +506,13 @@ export default function AssignmentRulesTab({ state, setState, saveState }: Assig
       return (
         <>
           <MultiSelectDropdown label={labels.customer} required values={draft.customers || []} options={clientOptions} onChange={(values) => updateDraft({ customers: values })} />
-          <select value={draft.templateId || ""} onChange={(event) => updateDraft({ templateId: event.target.value })} className="field-input" required>
-            <option value="">{labels.processTemplate} *</option>
-            {templateOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-          </select>
+          <label className="space-y-1 text-sm font-semibold">
+            <span>{labels.processTemplate}<span className="ml-0.5 text-red-600">*</span></span>
+            <select value={draft.templateId || ""} onChange={(event) => updateDraft({ templateId: event.target.value })} className="field-input" required>
+              <option value="" disabled hidden>{labels.selectProcessTemplate}</option>
+              {templateOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+            </select>
+          </label>
           <MultiSelectDropdown label={t(lang, "region")} values={draft.regions || []} options={regionOptions} onChange={(values) => updateDraft({ regions: values, countries: [] })} />
           <MultiSelectDropdown label={t(lang, "country")} values={draft.countries || []} options={countryOptions} onChange={(values) => updateDraft({ countries: values })} />
           <label className="space-y-1 text-sm font-semibold">
@@ -525,10 +538,13 @@ export default function AssignmentRulesTab({ state, setState, saveState }: Assig
               {workGroupOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
             </select>
           </label>
-          <select value={draft.templateId || ""} onChange={(event) => updateDraft({ templateId: event.target.value, milestoneId: "", taskId: "" })} className="field-input">
-            <option value="" disabled hidden>{labels.selectProcessTemplate} *</option>
-            {templateOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-          </select>
+          <label className="space-y-1 text-sm font-semibold">
+            <span>{labels.processTemplate}<span className="ml-0.5 text-red-600">*</span></span>
+            <select value={draft.templateId || ""} onChange={(event) => updateDraft({ templateId: event.target.value, milestoneId: "", taskId: "" })} className="field-input">
+              <option value="" disabled hidden>{labels.selectProcessTemplate}</option>
+              {templateOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+            </select>
+          </label>
           <MultiSelectDropdown label={labels.customer} values={draft.customers || []} options={clientOptions} onChange={(values) => updateDraft({ customers: values })} />
           <MultiSelectDropdown label={t(lang, "region")} values={draft.regions || []} options={regionOptions} onChange={(values) => updateDraft({ regions: values, countries: [], pols: [] })} />
           <MultiSelectDropdown label={t(lang, "country")} values={draft.countries || []} options={countryOptions} onChange={(values) => updateDraft({ countries: values, pols: [] })} />
