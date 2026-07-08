@@ -166,6 +166,9 @@ export default function AssignmentRulesTab({ state, setState, saveState }: Assig
     requiredWorkGroup: lang === "zh" ? "工作组为必填项。" : "Work Group is required.",
     requiredCustomer: lang === "zh" ? "客户为必填项。" : "Customer is required.",
     requiredTargetUser: lang === "zh" ? "目标用户为必填项。" : "Target User is required.",
+    invalidTargetUser: lang === "zh" ? "目标用户必须是所选工作组下的有效成员。" : "Target User must be an active member of the selected Work Group.",
+    invalidBackupUser: lang === "zh" ? "备选用户必须是所选工作组下的有效成员。" : "Backup User must be an active member of the selected Work Group.",
+    duplicateBackupUser: lang === "zh" ? "备选用户不能与目标用户相同。" : "Backup User cannot be the same as Target User.",
     noMembers: lang === "zh" ? "该工作组暂无可用成员" : "No active members in this Work Group",
   };
 
@@ -309,6 +312,10 @@ export default function AssignmentRulesTab({ state, setState, saveState }: Assig
     if (!draft.workGroupId) return setFormError(labels.requiredWorkGroup);
     if (!draft.templateId) return setFormError(labels.requiredTemplate);
     if (!draft.targetUser) return setFormError(labels.requiredTargetUser);
+    const selectedMemberIds = new Set(userOptions.map((option) => option.value));
+    if (!selectedMemberIds.has(draft.targetUser)) return setFormError(labels.invalidTargetUser);
+    if (draft.backupUser && !selectedMemberIds.has(draft.backupUser)) return setFormError(labels.invalidBackupUser);
+    if (draft.backupUser && draft.backupUser === draft.targetUser) return setFormError(labels.duplicateBackupUser);
     const rule: UserAssignmentRule = {
       ...(editingAssignment || {}),
       id: editingAssignment?.id || `user-${Date.now()}`,
