@@ -2,7 +2,7 @@ import { AppState, User, PORecord, POItem } from "@/types";
 
 const STORAGE_KEY = "moov-os-p1-state";
 const STATE_VERSION_KEY = "moov-os-p1-state-version";
-const CURRENT_STATE_VERSION = 12; // Increment when data structure changes significantly
+const CURRENT_STATE_VERSION = 15; // Increment when data structure changes significantly
 
 // Generate 40 sample PO records
 function generatePurchaseOrders(): PORecord[] {
@@ -576,11 +576,70 @@ const defaultState: AppState = {
     { id: "et3", code: "DOCUMENT_MISSING", name: "Document missing", severity: "Critical", defaultSla: "8h", escalation: true, status: "Active", remark: "Required documents not uploaded" },
     { id: "et4", code: "DELAY_WARNING", name: "Delay warning", severity: "Low", defaultSla: "48h", escalation: false, status: "Active", remark: "Potential delay detected" },
   ],
+  workCalendars: [
+    {
+      id: "wc-standard-5d",
+      calendarCode: "STANDARD_5D",
+      calendarName: "Standard 5-Day Workweek",
+      calendarType: "Standard",
+      timezone: "UTC (UTC+00:00)",
+      workingWeek: ["Mon", "Tue", "Wed", "Thu", "Fri"],
+      extraHolidays: [],
+      extraWorkingDays: [],
+      applicableWorkGroups: ["ALL"],
+      applicableUsers: ["ALL"],
+      status: "Active",
+      remark: "Base Mon-Fri work calendar without local holiday adjustments"
+    },
+    {
+      id: "wc-cn-2026",
+      calendarCode: "CN_WORKDAY_2026",
+      calendarName: "China Workday 2026",
+      calendarType: "Local Adjustment",
+      timezone: "Shanghai (UTC+08:00)",
+      workingWeek: ["Mon", "Tue", "Wed", "Thu", "Fri"],
+      extraHolidays: ["2026-01-01", "2026-02-16", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-04-06", "2026-05-01", "2026-06-19", "2026-09-25", "2026-10-01", "2026-10-02", "2026-10-05", "2026-10-06"],
+      extraWorkingDays: ["2026-02-14", "2026-02-28", "2026-09-27", "2026-10-10"],
+      applicableWorkGroups: ["WG001"],
+      applicableUsers: [],
+      status: "Active",
+      remark: "China calendar sample with public holidays and adjusted working days"
+    },
+    {
+      id: "wc-my-2026",
+      calendarCode: "MY_WORKDAY_2026",
+      calendarName: "Malaysia Workday 2026",
+      calendarType: "Local Adjustment",
+      timezone: "Kuala Lumpur (UTC+08:00)",
+      workingWeek: ["Mon", "Tue", "Wed", "Thu", "Fri"],
+      extraHolidays: ["2026-01-01", "2026-02-17", "2026-02-18", "2026-03-20", "2026-03-21", "2026-05-01", "2026-05-27", "2026-06-01", "2026-08-31", "2026-09-16", "2026-11-08", "2026-12-25"],
+      extraWorkingDays: [],
+      applicableWorkGroups: [],
+      applicableUsers: [],
+      status: "Active",
+      remark: "Malaysia local holiday sample"
+    },
+    {
+      id: "wc-us-2026",
+      calendarCode: "US_WORKDAY_2026",
+      calendarName: "US Workday 2026",
+      calendarType: "Local Adjustment",
+      timezone: "New York (UTC-05:00 / UTC-04:00 DST)",
+      workingWeek: ["Mon", "Tue", "Wed", "Thu", "Fri"],
+      extraHolidays: ["2026-01-01", "2026-01-19", "2026-02-16", "2026-05-25", "2026-06-19", "2026-07-03", "2026-09-07", "2026-10-12", "2026-11-11", "2026-11-26", "2026-12-25"],
+      extraWorkingDays: [],
+      applicableWorkGroups: ["WG002"],
+      applicableUsers: ["u4"],
+      status: "Active",
+      remark: "US federal holiday sample"
+    },
+  ],
   slaTypeConfigs: [
     {
       id: "stc1",
       slaRule: { baseDateCode: "TASK_CREATED", direction: "After", offsetValue: 24, offsetUnit: "Hours" },
-      calendarCode: "WORKDAY",
+      applicableBusinesses: ["Pepco", "LIDL US", "LIDL FOOD", "LIDL Non-FOOD"],
+      calendarCode: "STANDARD_5D",
       objectScope: "Task",
       reminderThreshold: 4,
       reminderUnit: "Hours",
@@ -590,7 +649,8 @@ const defaultState: AppState = {
     {
       id: "stc2",
       slaRule: { baseDateCode: "ETD", direction: "Before", offsetValue: 2, offsetUnit: "Days" },
-      calendarCode: "WORKDAY",
+      applicableBusinesses: ["Pepco", "LIDL US", "LIDL FOOD", "LIDL Non-FOOD"],
+      calendarCode: "STANDARD_5D",
       objectScope: "Booking",
       reminderThreshold: 1,
       reminderUnit: "Days",
@@ -599,8 +659,9 @@ const defaultState: AppState = {
     },
     {
       id: "stc3",
-      slaRule: { baseDateCode: "CRD", direction: "After", offsetValue: 1, offsetUnit: "Business Days" },
-      calendarCode: "CUSTOMER_LIDL",
+      slaRule: { baseDateCode: "CRD", direction: "After", offsetValue: 1, offsetUnit: "Workday" },
+      applicableBusinesses: ["LIDL US", "LIDL FOOD", "LIDL Non-FOOD"],
+      calendarCode: "STANDARD_5D",
       objectScope: "Milestone",
       reminderThreshold: 2,
       reminderUnit: "Hours",
@@ -611,7 +672,8 @@ const defaultState: AppState = {
     {
       id: "stc4",
       slaRule: { baseDateCode: "HOD", direction: "Before", offsetValue: 6, offsetUnit: "Months" },
-      calendarCode: "WORKDAY",
+      applicableBusinesses: ["Pepco", "LIDL US", "LIDL FOOD", "LIDL Non-FOOD"],
+      calendarCode: "STANDARD_5D",
       objectScope: "Milestone",
       reminderThreshold: 1,
       reminderUnit: "Months",
@@ -621,7 +683,8 @@ const defaultState: AppState = {
     {
       id: "stc5",
       slaRule: { baseDateCode: "HOD", direction: "Before", offsetValue: 28, offsetUnit: "Days" },
-      calendarCode: "WORKDAY",
+      applicableBusinesses: ["Pepco", "LIDL US", "LIDL FOOD", "LIDL Non-FOOD"],
+      calendarCode: "STANDARD_5D",
       objectScope: "Milestone",
       reminderThreshold: 3,
       reminderUnit: "Days",
@@ -630,8 +693,9 @@ const defaultState: AppState = {
     },
     {
       id: "stc6",
-      slaRule: { baseDateCode: "BOOKING_RECEIVED", direction: "After", offsetValue: 1, offsetUnit: "Business Days" },
-      calendarCode: "WORKDAY",
+      slaRule: { baseDateCode: "BOOKING_RECEIVED", direction: "After", offsetValue: 1, offsetUnit: "Workday" },
+      applicableBusinesses: ["Pepco", "LIDL US", "LIDL FOOD", "LIDL Non-FOOD"],
+      calendarCode: "STANDARD_5D",
       objectScope: "Task",
       reminderThreshold: 2,
       reminderUnit: "Hours",
@@ -640,8 +704,9 @@ const defaultState: AppState = {
     },
     {
       id: "stc7",
-      slaRule: { baseDateCode: "BOOKING_APPROVAL", direction: "After", offsetValue: 1, offsetUnit: "Business Days" },
-      calendarCode: "WORKDAY",
+      slaRule: { baseDateCode: "BOOKING_APPROVAL", direction: "After", offsetValue: 1, offsetUnit: "Workday" },
+      applicableBusinesses: ["Pepco", "LIDL US", "LIDL FOOD", "LIDL Non-FOOD"],
+      calendarCode: "STANDARD_5D",
       objectScope: "Task",
       reminderThreshold: 2,
       reminderUnit: "Hours",
@@ -651,7 +716,8 @@ const defaultState: AppState = {
     {
       id: "stc8",
       slaRule: { baseDateCode: "ETD", direction: "Before", offsetValue: 14, offsetUnit: "Days" },
-      calendarCode: "WORKDAY",
+      applicableBusinesses: ["Pepco", "LIDL US", "LIDL FOOD", "LIDL Non-FOOD"],
+      calendarCode: "STANDARD_5D",
       objectScope: "Milestone",
       reminderThreshold: 2,
       reminderUnit: "Days",
@@ -661,7 +727,8 @@ const defaultState: AppState = {
     {
       id: "stc9",
       slaRule: { baseDateCode: "ETD", direction: "Before", offsetValue: 7, offsetUnit: "Days" },
-      calendarCode: "WORKDAY",
+      applicableBusinesses: ["Pepco", "LIDL US", "LIDL FOOD", "LIDL Non-FOOD"],
+      calendarCode: "STANDARD_5D",
       objectScope: "Milestone",
       reminderThreshold: 1,
       reminderUnit: "Days",
@@ -671,7 +738,8 @@ const defaultState: AppState = {
     {
       id: "stc10",
       slaRule: { baseDateCode: "PEPCO_SCORING", direction: "After", offsetValue: 0, offsetUnit: "Days" },
-      calendarCode: "WORKDAY",
+      applicableBusinesses: ["Pepco"],
+      calendarCode: "STANDARD_5D",
       objectScope: "Milestone",
       reminderThreshold: 1,
       reminderUnit: "Hours",
@@ -681,7 +749,8 @@ const defaultState: AppState = {
     {
       id: "stc11",
       slaRule: { baseDateCode: "SO_RELEASE", direction: "After", offsetValue: 0, offsetUnit: "Days" },
-      calendarCode: "WORKDAY",
+      applicableBusinesses: ["Pepco", "LIDL US", "LIDL FOOD", "LIDL Non-FOOD"],
+      calendarCode: "STANDARD_5D",
       objectScope: "Milestone",
       reminderThreshold: 1,
       reminderUnit: "Hours",
@@ -691,7 +760,8 @@ const defaultState: AppState = {
     {
       id: "stc12",
       slaRule: { baseDateCode: "TASK_CREATED", direction: "After", offsetValue: 1, offsetUnit: "Days" },
-      calendarCode: "WORKDAY",
+      applicableBusinesses: ["Pepco", "LIDL US", "LIDL FOOD", "LIDL Non-FOOD"],
+      calendarCode: "STANDARD_5D",
       objectScope: "Task",
       reminderThreshold: 2,
       reminderUnit: "Hours",
@@ -701,7 +771,8 @@ const defaultState: AppState = {
     {
       id: "stc13",
       slaRule: { baseDateCode: "CONTAINER_LOADING", direction: "After", offsetValue: 0, offsetUnit: "Days" },
-      calendarCode: "WORKDAY",
+      applicableBusinesses: ["Pepco", "LIDL US", "LIDL FOOD", "LIDL Non-FOOD"],
+      calendarCode: "STANDARD_5D",
       objectScope: "Milestone",
       reminderThreshold: 1,
       reminderUnit: "Hours",
@@ -711,7 +782,8 @@ const defaultState: AppState = {
     {
       id: "stc14",
       slaRule: { baseDateCode: "CONTAINER_LOADING", direction: "After", offsetValue: 0, offsetUnit: "Days" },
-      calendarCode: "WORKDAY",
+      applicableBusinesses: ["Pepco", "LIDL US", "LIDL FOOD", "LIDL Non-FOOD"],
+      calendarCode: "STANDARD_5D",
       objectScope: "Milestone",
       reminderThreshold: 1,
       reminderUnit: "Hours",
@@ -721,7 +793,8 @@ const defaultState: AppState = {
     {
       id: "stc15",
       slaRule: { baseDateCode: "DEPARTURE", direction: "After", offsetValue: 0, offsetUnit: "Days" },
-      calendarCode: "WORKDAY",
+      applicableBusinesses: ["Pepco", "LIDL US", "LIDL FOOD", "LIDL Non-FOOD"],
+      calendarCode: "STANDARD_5D",
       objectScope: "Milestone",
       reminderThreshold: 1,
       reminderUnit: "Hours",

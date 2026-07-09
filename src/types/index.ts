@@ -84,7 +84,9 @@ export interface TemplateSubjectField {
 
 // SLA Rule Structure - PRD: Calculable SLA rules
 export type SlaDirection = 'Before' | 'After';
-export type SlaUnit = 'Hours' | 'Days' | 'Business Days' | 'Months';
+export type SlaUnit = 'Hours' | 'Days' | 'Workday' | 'Business Days' | 'Months';
+export type ApplicableBusiness = 'Pepco' | 'LIDL US' | 'LIDL FOOD' | 'LIDL Non-FOOD';
+export type WorkCalendarType = 'Standard' | 'Local Adjustment';
 export type BaseDateCode =
   | 'PO_CREATED'
   | 'CRD'
@@ -120,10 +122,10 @@ export function formatSlaRule(rule: SlaRule, lang: 'zh' | 'en' = 'zh'): string {
     ? (rule.direction === 'Before' ? 'before' : 'after')
     : (rule.direction === 'Before' ? '前' : '后');
   const unitText = lang === 'en'
-    ? rule.offsetUnit
+    ? (rule.offsetUnit === 'Business Days' ? 'Workday' : rule.offsetUnit)
     : rule.offsetUnit === 'Hours' ? '小时'
       : rule.offsetUnit === 'Days' ? '自然日'
-      : rule.offsetUnit === 'Business Days' ? '工作日'
+      : rule.offsetUnit === 'Workday' || rule.offsetUnit === 'Business Days' ? '工作日'
       : '月';
   return `${rule.baseDateCode}${directionText}${rule.offsetValue}${unitText}`;
 }
@@ -281,10 +283,26 @@ export interface ExceptionType {
 export interface SlaTypeConfig {
   id: string;
   slaRule: SlaRule;
+  applicableBusinesses?: ApplicableBusiness[];
   calendarCode?: string;
-  objectScope: 'Task' | 'Milestone' | 'Booking' | 'Shipment';
+  objectScope?: 'Task' | 'Milestone' | 'Booking' | 'Shipment';
   reminderThreshold?: number;
   reminderUnit?: SlaUnit;
+  status: 'Active' | 'Inactive';
+  remark?: string;
+}
+
+export interface WorkCalendarConfig {
+  id: string;
+  calendarCode: string;
+  calendarName: string;
+  calendarType: WorkCalendarType;
+  timezone: string;
+  workingWeek: string[];
+  extraHolidays: string[];
+  extraWorkingDays: string[];
+  applicableWorkGroups: string[];
+  applicableUsers: string[];
   status: 'Active' | 'Inactive';
   remark?: string;
 }
@@ -423,6 +441,7 @@ export interface AppState {
   // Basic Config - Independent tabs per PRD
   transportModes: TransportMode[];
   exceptionTypes: ExceptionType[];
+  workCalendars: WorkCalendarConfig[];
   slaTypeConfigs: SlaTypeConfig[];
   reasonCodes: ReasonCode[];
   notificationTemplates: NotificationTemplate[];
@@ -945,6 +964,7 @@ export interface AppState {
   // Basic Config - Independent tabs per PRD
   transportModes: TransportMode[];
   exceptionTypes: ExceptionType[];
+  workCalendars: WorkCalendarConfig[];
   slaTypeConfigs: SlaTypeConfig[];
   reasonCodes: ReasonCode[];
   notificationTemplates: NotificationTemplate[];
